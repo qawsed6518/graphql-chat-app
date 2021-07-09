@@ -49,7 +49,7 @@ function Sidebar({ channels }) {
                     {channels.map((name) => (
                         <Link
                             key={name}
-                            to={`/${name}`}
+                            to={`/home/${name}`}
                             style={{ textDecoration: "none" }}
                         >
                             <SidebarChannel>

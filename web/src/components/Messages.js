@@ -2,7 +2,6 @@ import React from "react";
 import styled from "styled-components";
 import Message from "./Message";
 import { gql, useQuery } from "@apollo/client";
-import { v4 as uuidv4 } from "uuid";
 
 function Messages({ channelName }) {
     const { subscribeToMore, ...result } = useQuery(MESSAGES, {
@@ -27,10 +26,11 @@ function Messages({ channelName }) {
         <Container>
             {result.data.messages.map((message) => (
                 <Message
-                    key={uuidv4()}
+                    key={message._id}
                     user={message.user}
                     message={message.text}
                     timestamp={message.date}
+                    image={message.image}
                 />
             ))}
         </Container>
@@ -43,9 +43,11 @@ export default Messages;
 const NEW_MESSAGE = gql`
     subscription new_Message($channelName: String!) {
         newMessage(channelName: $channelName) {
+            _id
             user
             text
             date
+            image
         }
     }
 `;
@@ -53,9 +55,11 @@ const NEW_MESSAGE = gql`
 const MESSAGES = gql`
     query Messages($channelName: String!) {
         messages(channelName: $channelName) {
+            _id
             user
             text
             date
+            image
         }
     }
 `;

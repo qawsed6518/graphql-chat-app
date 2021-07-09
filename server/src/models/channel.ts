@@ -2,10 +2,10 @@ import mongoose from "mongoose";
 const { Schema } = mongoose;
 
 const message = {
-    text: String,
+    text: { type: String, nullable: true },
+    image: { type: String, nullable: true },
     user: String,
     date: String,
-    autoIndexId: false,
 };
 
 const ChannelSchema = new Schema({

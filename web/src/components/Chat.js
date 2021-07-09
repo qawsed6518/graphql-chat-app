@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { gql, useMutation } from "@apollo/client";
 import Messages from "./Messages";
 import ChatHeader from "./ChatHeader";
-import { AddCircle } from "@styled-icons/fluentui-system-regular/AddCircle";
+import Drop from "./Drop";
 
 // import { CardGiftcard } from "@styled-icons/material/CardGiftcard";
 // import { Gif } from "@styled-icons/fluentui-system-regular/Gif";
@@ -29,7 +29,7 @@ function Chat({ channelName }) {
             <ChatHeader channelName={channelName} />
             {channelName ? <Messages channelName={channelName} /> : <Dummy />}
             <MessagesInput>
-                <AddIcon size="48" />
+                <Drop disabled={!channelName} channelName={channelName} />
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <input
                         // value={input}
@@ -86,8 +86,6 @@ const Dummy = styled.div`
         background-color: grey;
     }
 `;
-
-const AddIcon = styled(AddCircle)``;
 
 // const ChatIcons = styled.div``;
 

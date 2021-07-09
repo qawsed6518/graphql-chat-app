@@ -38,11 +38,19 @@ let Message = class Message {
 __decorate([
     type_graphql_1.Field(),
     __metadata("design:type", String)
-], Message.prototype, "user", void 0);
+], Message.prototype, "_id", void 0);
 __decorate([
     type_graphql_1.Field(),
     __metadata("design:type", String)
+], Message.prototype, "user", void 0);
+__decorate([
+    type_graphql_1.Field({ nullable: true }),
+    __metadata("design:type", String)
 ], Message.prototype, "text", void 0);
+__decorate([
+    type_graphql_1.Field({ nullable: true }),
+    __metadata("design:type", String)
+], Message.prototype, "image", void 0);
 __decorate([
     type_graphql_1.Field(),
     __metadata("design:type", String)
@@ -164,7 +172,7 @@ __decorate([
     __metadata("design:type", String)
 ], MessageInput.prototype, "channelName", void 0);
 __decorate([
-    type_graphql_1.Field(),
+    type_graphql_1.Field({ nullable: true }),
     __metadata("design:type", String)
 ], MessageInput.prototype, "text", void 0);
 MessageInput = __decorate([

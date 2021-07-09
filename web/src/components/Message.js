@@ -2,7 +2,7 @@ import React from "react";
 import styled from "styled-components";
 // import { PersonFill } from "@styled-icons/bootstrap/PersonFill";
 
-function Message({ timestamp, user, message }) {
+function Message({ timestamp, user, message, image }) {
     return (
         <Container>
             {/* <Person /> */}
@@ -11,7 +11,13 @@ function Message({ timestamp, user, message }) {
                     {user}
                     <TimeStamp>{timestamp}</TimeStamp>
                 </h4>
-                <p> {message} </p>
+                {message ? <p> {message} </p> : null}
+                {image ? (
+                    <img
+                        src={`http://localhost:4000/images/${image}`}
+                        alt={image}
+                    />
+                ) : null}
             </MessageInfo>
         </Container>
     );
@@ -30,6 +36,14 @@ const Container = styled.div`
 
 const MessageInfo = styled.div`
     margin-left: 20px;
+    p {
+        margin-top: 10px;
+    }
+
+    img {
+        margin-top: 10px;
+        max-width: 600px;
+    }
 `;
 
 const TimeStamp = styled.span`

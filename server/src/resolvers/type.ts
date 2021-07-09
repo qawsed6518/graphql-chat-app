@@ -1,4 +1,5 @@
 import { Field, ObjectType, InputType, ArgsType } from "type-graphql";
+import { Stream } from "stream";
 
 @ObjectType()
 export class Channel {
@@ -15,9 +16,13 @@ export class Channel {
 @ObjectType()
 export class Message {
     @Field()
-    user?: string;
+    _id: string;
     @Field()
-    text: string;
+    user?: string;
+    @Field({ nullable: true })
+    text?: string;
+    @Field({ nullable: true })
+    image?: string;
     @Field()
     date: string;
 }
@@ -89,8 +94,8 @@ export class UsernamePasswordInput {
 export class MessageInput {
     @Field()
     channelName: string;
-    @Field()
-    text: string;
+    @Field({ nullable: true })
+    text?: string;
 }
 
 @ArgsType()
@@ -100,8 +105,22 @@ export class NewMessageArgs {
 }
 
 export interface MessagePayload {
-    text: string;
+    _id: string;
+    text?: string;
+    image?: string;
     user?: string;
     date: string;
+    channelName?: string | String;
+}
+
+export interface Upload {
+    filename: string;
+    mimetype: string;
+    encoding: string;
+    createReadStream: () => Stream;
+}
+
+export interface FileInput {
+    picture: Upload;
     channelName: string;
 }

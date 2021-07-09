@@ -42,6 +42,9 @@ const type_graphql_1 = require("type-graphql");
 const user_1 = require("./resolvers/user");
 const channel_1 = require("./resolvers/channel");
 const http = __importStar(require("http"));
+const graphql_upload_1 = require("graphql-upload");
+const fs_1 = require("fs");
+const path_1 = __importDefault(require("path"));
 const main = () => __awaiter(void 0, void 0, void 0, function* () {
     const connection_url = "mongodb+srv://qwerty:96zSMUQQI3k4X4bL@cluster0.wqhrf.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
     yield mongoose_1.default
@@ -56,8 +59,10 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
         .catch((err) => {
         console.log(err);
     });
-    const app = express_1.default();
     const mongo = connect_mongo_1.default.create({ mongoUrl: connection_url });
+    const app = express_1.default();
+    app.use(graphql_upload_1.graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }));
+    app.use("/images", express_1.default.static(path_1.default.join(__dirname, "../images")));
     app.use(cors_1.default({
         origin: "http://localhost:3000",
         credentials: true,
@@ -76,6 +81,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
     });
     app.use(sessionMiddleware);
     const server = new apollo_server_express_1.ApolloServer({
+        uploads: false,
         schema: yield type_graphql_1.buildSchema({
             resolvers: [user_1.UserResolver, channel_1.ChannelResolver],
             validate: false,
@@ -87,7 +93,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
             mongo,
         }),
         subscriptions: {
-            path: "/subscriptions",
+            path: "/graphql",
             onConnect: (_, ws) => {
                 return new Promise((res) => sessionMiddleware(ws.upgradeReq, {}, () => {
                     res({ req: ws.upgradeReq });
@@ -104,6 +110,8 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
     httpServer.listen(4000, () => {
         console.log(`🚀 Server ready at http://localhost:4000${server.graphqlPath}`);
     });
+    fs_1.existsSync(path_1.default.join(__dirname, "../images")) ||
+        fs_1.mkdirSync(path_1.default.join(__dirname, "../images"));
 });
 main().catch((err) => {
     console.error(err);

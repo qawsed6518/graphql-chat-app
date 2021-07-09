@@ -9,6 +9,9 @@ import { buildSchema } from "type-graphql";
 import { UserResolver } from "./resolvers/user";
 import { ChannelResolver } from "./resolvers/channel";
 import * as http from "http";
+import { graphqlUploadExpress } from "graphql-upload";
+import { existsSync, mkdirSync } from "fs";
+import path from "path";
 
 const main = async () => {
     const connection_url =
@@ -27,9 +30,10 @@ const main = async () => {
             console.log(err);
         });
 
-    const app = express();
     const mongo = MongoStore.create({ mongoUrl: connection_url });
-
+    const app = express();
+    app.use(graphqlUploadExpress({ maxFileSize: 10000000, maxFiles: 10 }));
+    app.use("/images", express.static(path.join(__dirname, "../images")));
     // app.set("trust proxy", 1);
     app.use(
         cors({
@@ -54,6 +58,7 @@ const main = async () => {
     app.use(sessionMiddleware);
 
     const server = new ApolloServer({
+        uploads: false,
         schema: await buildSchema({
             resolvers: [UserResolver, ChannelResolver],
             validate: false,
@@ -67,7 +72,7 @@ const main = async () => {
         }),
 
         subscriptions: {
-            path: "/subscriptions",
+            path: "/graphql",
             onConnect: (_, ws: any) => {
                 return new Promise((res) =>
                     sessionMiddleware(ws.upgradeReq, {} as any, () => {
@@ -91,6 +96,9 @@ const main = async () => {
             `🚀 Server ready at http://localhost:4000${server.graphqlPath}`
         );
     });
+
+    existsSync(path.join(__dirname, "../images")) ||
+        mkdirSync(path.join(__dirname, "../images"));
 };
 
 main().catch((err) => {

@@ -10,10 +10,12 @@
         "@testing-library/react": "^11.1.0",
         "@testing-library/user-event": "^12.1.10",
         "apollo-link-ws": "^1.0.20",
+        "apollo-upload-client": "^16.0.0",
         "framer-motion": "^4.1.17",
         "graphql": "^15.5.0",
         "react": "^17.0.2",
         "react-dom": "^17.0.2",
+        "react-dropzone": "^11.3.4",
         "react-hook-form": "^7.8.8",
         "react-router-dom": "^5.2.0",
         "react-scripts": "4.0.3",
@@ -22,7 +24,6 @@
         "styled-components": "^5.3.0",
         "styled-icons": "^10.34.0",
         "subscriptions-transport-ws": "^0.9.19",
-        "uuid": "^8.3.2",
         "web-vitals": "^1.0.1"
     },
     "resolutions": {

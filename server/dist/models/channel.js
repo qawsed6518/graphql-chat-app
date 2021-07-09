@@ -6,10 +6,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const mongoose_1 = __importDefault(require("mongoose"));
 const { Schema } = mongoose_1.default;
 const message = {
-    text: String,
+    text: { type: String, nullable: true },
+    image: { type: String, nullable: true },
     user: String,
     date: String,
-    autoIndexId: false,
 };
 const ChannelSchema = new Schema({
     name: {

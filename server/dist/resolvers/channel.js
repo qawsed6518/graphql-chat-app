@@ -31,10 +31,13 @@ const type_graphql_1 = require("type-graphql");
 const channel_1 = __importDefault(require("../models/channel"));
 const user_1 = __importDefault(require("../models/user"));
 const type_1 = require("./type");
+const fs_1 = require("fs");
+const graphql_upload_1 = require("graphql-upload");
+const path_1 = __importDefault(require("path"));
 let ChannelResolver = class ChannelResolver {
-    newMessage({ text, user, date }, { channelName }) {
+    newMessage({ _id, text, user, date, image }, { channelName }) {
         channelName;
-        return { text, user, date };
+        return { _id, text, user, date, image };
     }
     allChannel() {
         return channel_1.default.find();
@@ -76,18 +79,52 @@ let ChannelResolver = class ChannelResolver {
                 const channel = yield channel_1.default.findOne({
                     name: input.channelName,
                 });
-                const createAt = new Date().toUTCString();
-                channel.messages.push({
+                const UTC = new Date().toUTCString();
+                const msg = channel.messages.addToSet({
                     text: input.text,
                     user: req.session.name,
-                    date: createAt,
+                    date: UTC,
                 });
                 channel.save();
                 const payload = {
-                    text: input.text,
-                    user: req.session.name,
-                    date: createAt,
+                    _id: msg[0]._id,
+                    user: msg[0].user,
+                    date: msg[0].date,
                     channelName: input.channelName,
+                    text: msg[0].text,
+                };
+                yield pubsub.publish("MESSAGES", payload);
+                return true;
+            }
+            catch (err) {
+                console.log(err);
+                return false;
+            }
+        });
+    }
+    createFile(file, channelName, { req }, pubsub) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const channel = yield channel_1.default.findOne({
+                    name: channelName,
+                });
+                const { createReadStream, filename } = yield file;
+                const UTC = new Date().toUTCString();
+                yield new Promise((res) => createReadStream()
+                    .pipe(fs_1.createWriteStream(path_1.default.join(__dirname, `/../../images`, filename)))
+                    .on("close", res));
+                const msg = channel.messages.addToSet({
+                    image: filename,
+                    user: req.session.name,
+                    date: UTC,
+                });
+                channel.save();
+                const payload = {
+                    _id: msg[0]._id,
+                    user: msg[0].user,
+                    date: msg[0].date,
+                    channelName: channelName,
+                    image: msg[0].image,
                 };
                 yield pubsub.publish("MESSAGES", payload);
                 return true;
@@ -190,6 +227,17 @@ __decorate([
     __metadata("design:paramtypes", [type_1.MessageInput, Object, graphql_subscriptions_1.PubSubEngine]),
     __metadata("design:returntype", Promise)
 ], ChannelResolver.prototype, "createMessage", null);
+__decorate([
+    type_graphql_1.Mutation(() => Boolean),
+    type_graphql_1.UseMiddleware(isAuth_1.isAuth),
+    __param(0, type_graphql_1.Arg("file", () => graphql_upload_1.GraphQLUpload)),
+    __param(1, type_graphql_1.Arg("channelName")),
+    __param(2, type_graphql_1.Ctx()),
+    __param(3, type_graphql_1.PubSub()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, Object, graphql_subscriptions_1.PubSubEngine]),
+    __metadata("design:returntype", Promise)
+], ChannelResolver.prototype, "createFile", null);
 __decorate([
     type_graphql_1.Mutation(() => type_1.ChannelResponse),
     type_graphql_1.UseMiddleware(isAuth_1.isAuth),

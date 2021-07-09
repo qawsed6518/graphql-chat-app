@@ -24,6 +24,9 @@ import {
     NewMessageArgs,
     MessagePayload,
 } from "./type";
+import { createWriteStream } from "fs";
+import { GraphQLUpload, FileUpload } from "graphql-upload";
+import path from "path";
 
 @Resolver(Channel)
 export class ChannelResolver {
@@ -36,11 +39,11 @@ export class ChannelResolver {
             payload.channelName === args.channelName,
     })
     newMessage(
-        @Root() { text, user, date }: MessagePayload,
+        @Root() { _id, text, user, date, image }: MessagePayload,
         @Args() { channelName }: NewMessageArgs
     ): Message {
         channelName;
-        return { text, user, date };
+        return { _id, text, user, date, image };
     }
 
     ///////////////////////////////////////////////////
@@ -101,22 +104,24 @@ export class ChannelResolver {
             const channel = await Channelmodel.findOne({
                 name: input.channelName,
             });
-            const createAt = new Date().toUTCString();
-            channel.messages.push({
+            const UTC = new Date().toUTCString();
+            const msg = channel.messages.addToSet({
                 text: input.text,
                 user: req.session.name,
-                date: createAt,
+                date: UTC,
             });
             channel.save();
 
-            // here we can trigger subscriptions topics
             const payload: MessagePayload = {
-                text: input.text,
-                user: req.session.name,
-                date: createAt,
+                _id: msg[0]._id,
+                user: msg[0].user,
+                date: msg[0].date,
                 channelName: input.channelName,
+                text: msg[0].text,
             };
+
             await pubsub.publish("MESSAGES", payload);
+
             return true;
         } catch (err) {
             console.log(err);
@@ -124,6 +129,56 @@ export class ChannelResolver {
         }
     }
 
+    /////////////////////////////////////////////////////////////
+
+    @Mutation(() => Boolean)
+    @UseMiddleware(isAuth)
+    async createFile(
+        @Arg("file", () => GraphQLUpload) file: FileUpload,
+        @Arg("channelName") channelName: String,
+        @Ctx() { req }: MyContext,
+        @PubSub() pubsub: PubSubEngine
+    ) {
+        try {
+            const channel = await Channelmodel.findOne({
+                name: channelName,
+            });
+            const { createReadStream, filename } = await file;
+            const UTC = new Date().toUTCString();
+
+            await new Promise((res) =>
+                createReadStream()
+                    .pipe(
+                        createWriteStream(
+                            path.join(__dirname, `/../../images`, filename)
+                        )
+                    )
+                    .on("close", res)
+            );
+
+            const msg = channel.messages.addToSet({
+                image: filename,
+                user: req.session.name,
+                date: UTC,
+            });
+            channel.save();
+
+            const payload: MessagePayload = {
+                _id: msg[0]._id,
+                user: msg[0].user,
+                date: msg[0].date,
+                channelName: channelName,
+                image: msg[0].image,
+            };
+
+            await pubsub.publish("MESSAGES", payload);
+
+            return true;
+        } catch (err) {
+            console.log(err);
+            return false;
+        }
+    }
     /////////////////////////////////////////////////////////////
 
     @Mutation(() => ChannelResponse)

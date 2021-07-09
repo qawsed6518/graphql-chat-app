@@ -8,7 +8,7 @@ export default function Root() {
     return (
         <Router>
             <Switch>
-                <Route path="/:name?" exact component={Home} />
+                <Route path="/home/:name?" exact component={Home} />
                 <Route path="/register" exact component={Register} />
                 <Route path="/create-channel" exact component={CreateChannel} />
             </Switch>
