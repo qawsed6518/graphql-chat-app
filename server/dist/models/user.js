@@ -19,6 +19,10 @@ const UserSchema = new Schema({
         default: Date.now,
     },
     channels: [String],
+    image: {
+        type: String,
+        default: "profilePicture",
+    },
 });
 const Usermodel = mongoose_1.default.model("User", UserSchema);
 exports.default = Usermodel;

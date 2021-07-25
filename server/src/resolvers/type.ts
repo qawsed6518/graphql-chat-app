@@ -37,6 +37,8 @@ export class User {
     createdAt: Date;
     @Field(() => [String], { nullable: true })
     channels: string[];
+    @Field()
+    image: string;
 }
 
 @ObjectType()

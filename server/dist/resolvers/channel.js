@@ -34,10 +34,19 @@ const type_1 = require("./type");
 const fs_1 = require("fs");
 const graphql_upload_1 = require("graphql-upload");
 const path_1 = __importDefault(require("path"));
+const uuid_1 = require("uuid");
 let ChannelResolver = class ChannelResolver {
     newMessage({ _id, text, user, date, image }, { channelName }) {
         channelName;
         return { _id, text, user, date, image };
+    }
+    allChannelMember(channelName) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const ch = yield channel_1.default.findOne({
+                name: channelName,
+            });
+            return ch.members;
+        });
     }
     allChannel() {
         return channel_1.default.find();
@@ -59,14 +68,14 @@ let ChannelResolver = class ChannelResolver {
             if (channel == null)
                 return false;
             const user = yield user_1.default.findOne({
-                username: req.session.name,
+                _id: req.session.userId,
             });
             if (user.channels.includes(channelNameInput) == true) {
                 return true;
             }
             else {
                 yield user.channels.push(channelNameInput);
-                yield channel.members.push(req.session.name);
+                yield channel.members.push(user.username);
                 user.save();
                 channel.save();
                 return true;
@@ -108,8 +117,9 @@ let ChannelResolver = class ChannelResolver {
                 const channel = yield channel_1.default.findOne({
                     name: channelName,
                 });
-                const { createReadStream, filename } = yield file;
+                const { createReadStream } = yield file;
                 const UTC = new Date().toUTCString();
+                const filename = uuid_1.v4();
                 yield new Promise((res) => createReadStream()
                     .pipe(fs_1.createWriteStream(path_1.default.join(__dirname, `/../../images`, filename)))
                     .on("close", res));
@@ -193,6 +203,14 @@ __decorate([
     __metadata("design:paramtypes", [Object, type_1.NewMessageArgs]),
     __metadata("design:returntype", type_1.Message)
 ], ChannelResolver.prototype, "newMessage", null);
+__decorate([
+    type_graphql_1.Query(() => [String], { nullable: true }),
+    type_graphql_1.UseMiddleware(isAuth_1.isAuth),
+    __param(0, type_graphql_1.Arg("channelName")),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], ChannelResolver.prototype, "allChannelMember", null);
 __decorate([
     type_graphql_1.Query(() => [type_1.Channel], { nullable: true }),
     type_graphql_1.UseMiddleware(isAuth_1.isAuth),

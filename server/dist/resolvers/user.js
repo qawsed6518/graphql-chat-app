@@ -29,13 +29,17 @@ const type_graphql_1 = require("type-graphql");
 const user_1 = __importDefault(require("../models/user"));
 const isAuth_1 = require("../middleware/isAuth");
 const type_1 = require("./type");
+const fs_1 = require("fs");
+const graphql_upload_1 = require("graphql-upload");
+const path_1 = __importDefault(require("path"));
+const uuid_1 = require("uuid");
 let UserResolver = class UserResolver {
     me({ req }) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (req.session.name == null) {
+            if (req.session.userId == null) {
                 return { loggedIn: false };
             }
-            const me = yield user_1.default.findOne({ username: req.session.name });
+            const me = yield user_1.default.findOne({ _id: req.session.userId });
             return {
                 loggedIn: true,
                 user: me,
@@ -44,6 +48,27 @@ let UserResolver = class UserResolver {
     }
     allUser() {
         return user_1.default.find();
+    }
+    profilePicture(file, { req }) {
+        return __awaiter(this, void 0, void 0, function* () {
+            try {
+                const user = yield user_1.default.findOne({
+                    _id: req.session.userId,
+                });
+                const filename = uuid_1.v4();
+                const { createReadStream } = yield file;
+                yield new Promise((res) => createReadStream()
+                    .pipe(fs_1.createWriteStream(path_1.default.join(__dirname, `/../../images`, filename)))
+                    .on("close", res));
+                user.set("image", filename);
+                user.save();
+                return true;
+            }
+            catch (err) {
+                console.log(err);
+                return false;
+            }
+        });
     }
     register(options, { req }) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -66,6 +91,7 @@ let UserResolver = class UserResolver {
                     };
                 }
                 user.save();
+                req.session.userId = user._id;
                 req.session.name = user.username;
                 return {
                     user: user,
@@ -100,8 +126,8 @@ let UserResolver = class UserResolver {
                     };
                 }
                 if (user.password == options.password) {
+                    req.session.userId = user._id;
                     req.session.name = user.username;
-                    console.log(req.session);
                     return {
                         user: user,
                     };
@@ -155,6 +181,15 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], UserResolver.prototype, "allUser", null);
+__decorate([
+    type_graphql_1.Mutation(() => Boolean),
+    type_graphql_1.UseMiddleware(isAuth_1.isAuth),
+    __param(0, type_graphql_1.Arg("file", () => graphql_upload_1.GraphQLUpload)),
+    __param(1, type_graphql_1.Ctx()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Object]),
+    __metadata("design:returntype", Promise)
+], UserResolver.prototype, "profilePicture", null);
 __decorate([
     type_graphql_1.Mutation(() => type_1.UserResponse),
     __param(0, type_graphql_1.Arg("options")),

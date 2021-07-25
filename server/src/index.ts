@@ -97,6 +97,8 @@ const main = async () => {
         );
     });
 
+    process.setMaxListeners(0);
+
     existsSync(path.join(__dirname, "../images")) ||
         mkdirSync(path.join(__dirname, "../images"));
 };

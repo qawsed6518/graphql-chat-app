@@ -4,18 +4,10 @@ import { ExpandMore } from "@styled-icons/material/ExpandMore";
 import { Add } from "@styled-icons/fluentui-system-filled/Add";
 import { gql, useMutation } from "@apollo/client";
 import { Link } from "react-router-dom";
+import { Settings } from "@styled-icons/feather/Settings";
+import Dropzone from "react-dropzone";
 
-const CREATE_CHANNEL = gql`
-    mutation CREATE_CHANNEL($name: String!) {
-        createChannel(input: $name) {
-            channel {
-                name
-            }
-        }
-    }
-`;
-
-function Sidebar({ channels }) {
+function Sidebar({ channels, username, profilePicture }) {
     const [createChannel] = useMutation(CREATE_CHANNEL, {
         onCompleted({ createChannel: { channel, errors } }) {
             channel ? window.location.reload() : prompt(errors[0].field);
@@ -28,6 +20,8 @@ function Sidebar({ channels }) {
             createChannel({ variables: { name: newChannelName } });
         }
     };
+
+    const [uploadFile] = useMutation(PROFILE);
 
     return (
         <Container>
@@ -61,11 +55,92 @@ function Sidebar({ channels }) {
                     ))}
                 </ChannelsList>
             </Channels>
+            <Profile>
+                <ProfileIcons>
+                    <img
+                        src={`http://localhost:4000/images/${profilePicture}`}
+                        alt={profilePicture}
+                    />
+                </ProfileIcons>
+                <ProfileInfo>
+                    <h3>{username}</h3>
+                    <p>hello, {username}!</p>
+                </ProfileInfo>
+                <ProfileIcons>
+                    <Dropzone
+                        accept="image/*"
+                        onDrop={([file]) =>
+                            uploadFile({
+                                variables: {
+                                    file: file,
+                                },
+                            })
+                        }
+                    >
+                        {({ getRootProps, getInputProps }) => (
+                            <section>
+                                <div {...getRootProps()}>
+                                    <input {...getInputProps()} />
+                                    <Settings size="40" />
+                                </div>
+                            </section>
+                        )}
+                    </Dropzone>
+                </ProfileIcons>
+            </Profile>
         </Container>
     );
 }
 
 export default Sidebar;
+
+const PROFILE = gql`
+    mutation ($file: Upload!) {
+        profilePicture(file: $file)
+    }
+`;
+
+const CREATE_CHANNEL = gql`
+    mutation CREATE_CHANNEL($name: String!) {
+        createChannel(input: $name) {
+            channel {
+                name
+            }
+        }
+    }
+`;
+
+const ProfileInfo = styled.div`
+    flex: 1;
+    padding: 10px;
+    h3 {
+        color: white;
+    }
+`;
+
+const ProfileIcons = styled.div`
+    padding: 10px 10px 0px 0px;
+
+    img {
+        display: inline-block;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-repeat: no-repeat;
+        background-position: center center;
+        background-size: cover;
+    }
+`;
+
+const Profile = styled.div`
+    display: flex;
+    justify-content: space-between;
+    align-item: center;
+    color: gray;
+    background-color: #2f3135;
+    padding: 10px;
+    border-top: 1px solid gray;
+`;
 
 const ChannelHash = styled.span`
     font-size: 30px;
@@ -98,7 +173,7 @@ const AddIcon = styled(Add)`
 const Container = styled.div`
     display: flex;
     flex-direction: column;
-    flex: 0.2;
+    flex: 0.15;
     height: 100vh;
     background-color: #2f3135;
 `;

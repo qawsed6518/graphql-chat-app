@@ -67,7 +67,7 @@ const CREATE_MESSAGE = gql`
 const Container = styled.div`
     display: flex;
     flex-direction: column;
-    flex: 0.8;
+    flex: 0.7;
     background-color: #363a3f;
     height: 100vh;
 `;

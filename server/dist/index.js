@@ -110,6 +110,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
     httpServer.listen(4000, () => {
         console.log(`🚀 Server ready at http://localhost:4000${server.graphqlPath}`);
     });
+    process.setMaxListeners(0);
     fs_1.existsSync(path_1.default.join(__dirname, "../images")) ||
         fs_1.mkdirSync(path_1.default.join(__dirname, "../images"));
 });

@@ -18,6 +18,11 @@ const UserSchema = new Schema({
     },
 
     channels: [String],
+
+    image: {
+        type: String,
+        default: "profilePicture",
+    },
 });
 
 const Usermodel = mongoose.model("User", UserSchema);

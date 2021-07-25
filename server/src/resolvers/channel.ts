@@ -27,6 +27,7 @@ import {
 import { createWriteStream } from "fs";
 import { GraphQLUpload, FileUpload } from "graphql-upload";
 import path from "path";
+import { v4 as uuidv4 } from "uuid";
 
 @Resolver(Channel)
 export class ChannelResolver {
@@ -48,6 +49,19 @@ export class ChannelResolver {
 
     ///////////////////////////////////////////////////
 
+    @Query(() => [String], { nullable: true })
+    @UseMiddleware(isAuth)
+    async allChannelMember(
+        @Arg("channelName") channelName: String
+    ): Promise<String[]> {
+        const ch = await Channelmodel.findOne({
+            name: channelName,
+        });
+
+        return ch.members;
+    }
+
+    ///////////////////////////////
     @Query(() => [Channel], { nullable: true })
     @UseMiddleware(isAuth)
     allChannel(): Promise<Channel[]> {
@@ -79,14 +93,14 @@ export class ChannelResolver {
         if (channel == null) return false;
 
         const user = await Usermodel.findOne({
-            username: req.session.name,
+            _id: req.session.userId,
         });
 
         if (user.channels.includes(channelNameInput) == true) {
             return true;
         } else {
             await user.channels.push(channelNameInput);
-            await channel.members.push(req.session.name);
+            await channel.members.push(user.username);
             user.save();
             channel.save();
             return true;
@@ -143,9 +157,9 @@ export class ChannelResolver {
             const channel = await Channelmodel.findOne({
                 name: channelName,
             });
-            const { createReadStream, filename } = await file;
+            const { createReadStream } = await file;
             const UTC = new Date().toUTCString();
-
+            const filename = uuidv4();
             await new Promise((res) =>
                 createReadStream()
                     .pipe(

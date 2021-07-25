@@ -77,6 +77,10 @@ __decorate([
     type_graphql_1.Field(() => [String], { nullable: true }),
     __metadata("design:type", Array)
 ], User.prototype, "channels", void 0);
+__decorate([
+    type_graphql_1.Field(),
+    __metadata("design:type", String)
+], User.prototype, "image", void 0);
 User = __decorate([
     type_graphql_1.ObjectType()
 ], User);
