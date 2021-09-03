@@ -15,7 +15,7 @@ import path from "path";
 
 const main = async () => {
     const connection_url =
-        "mongodb+srv://qwerty:96zSMUQQI3k4X4bL@cluster0.wqhrf.mongodb.net/myFirstDatabase?retryWrites=true&w=majority";
+        "mongodb+srv://~~~~";
 
     await mongoose
         .connect(connection_url, {
